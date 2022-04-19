@@ -1,26 +1,52 @@
-Repo hosting my (`michelebevila@fb.com`) FAIR internship work. 
+# SEAL: <u>S</u>earch <u>E</u>ngines with <u>A</u>utoregressive <u>L</u>Ms
+This repo hosts the code for our paper, SEAL.
 
-## Install instruction
+**Michele Bevilacqua, Giuseppe Ottaviano, Patrick Lewis, Wen-tau Yih, Sebastian Riedel, Fabio Petroni**,
+ *Autoregressive Search Engines: Generating Substrings as Document Identifiers.* 2022.
 
-Clone this repo with `--recursive` so that you also include submodules in `ext`.
-```
-git clone --recursive git@github.com:fairinternal/generative_retrieval.git
+We propose a approach to retrieval that uses guided LM decoding to search for occurrences of ngrams of any size in an 
+arbitrary large collection of documents. Constrained decoding blocks the generation of ngrams that never appear in the 
+corpus: generated ngrams are always grounded in one or multiple documents in the retrieval corpus. Documents are then scored by aggregating the scores for individual generated 
+"identifiers". 
+
+We use the Ferragina Manzini index, an opportunistic, compressed suffix array as the unified data structure for constrained decoding,
+retrieval and full-text storage.
+
+## Install
+We assume that `pytorch` is already available in your environment. SEAL has been tested with version 1.11.
+
+Clone this repo with `--recursive` so that you also include the submodule in `ext`.
+```commandline
+git clone --recursive git@github.com:facebookresearch/SEAL.git
 ```
 
 Compile and install `sdsl-lite`:
-```
-cd ext/sdsl-lite
+```commandline
+pushd res/repos/sdsl-lite
 env CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./install.sh
+popd
+```
+
+Install other dependencies:
+```commandline
+pip install -r requirements
 ```
 
 Now install this library.
-```
+```commandline
 pip install --ignore-installed -e .
 ```
+## Data
+We provide the weights of our Natural Questions and KILT models.
+* [BART large (NQ)](URL)
+* [BART large (KILT)](URL)
 
-For training, you can use the version of `fairseq-py` included in `ext`.
+We also make available the indices for both the NQ and KILT retrieval corpora. Both corpora have been tokenized using 
+the tokenizer from BART.
+* [FM-index, `psgs_w100` (NQ)](URL)
+* [FM-index (KILT)](URL)
 
-## Prediction
+## Retrieval
 Suppose you start with the following files.
 ```commandline
 sample.json
@@ -36,7 +62,7 @@ sample.fm_index.oth
 To run prediction, launch the following command:
 
 ```commandline
-python -m generative_retrieval.search \
+python -m seal.search \
     --topics_format dpr --topics sample.json \
     --output_format dpr --output sample.output.json \
     --checkpoint checkpoint.pt \
@@ -50,24 +76,45 @@ The script will generate the DPR prediction file `sample.output.json`. Other sup
 Our codebase relies on a `pyserini`-like searcher class, that incapsulates both constrained decoding and retrieval. You
 can use it programmatically:
 ```python
-from generative_retrieval.retrieval import GenerativeRetrievalSearcher, GenerativeRetrievalDocument
+from seal.retrieval import SEALSearcher
 
-searcher = GenerativeRetrievalSearcher.load('sample.fm_index', 'checkpoint.pt')
+searcher = SEALSearcher.load('sample.fm_index', 'checkpoint.pt')
+searcher.include_keys = True
 
+query = "causes of co2 increase"
+
+for i, doc in enumerate(searcher.batch_search(query, k=3)):
+    print(i, doc.score, doc.docid, *doc.text(), sep='\t')
+    print("Matched:")
+    for ngram, freq, score in sorted(doc.keys, reverse=True, key=lambda x:x[2]):
+        print(score, freq, repr(ngram), sep='\t')
 ```
 
+## Constrained decoding
 
-## Building the FM-index
-To build the FM-index, you have to put your retrieval corpus in a common format. We use a simple TSV file formatted as follows:
+### Building the FM-index (CLI)
+To most straightforward way to build the FM-index is to use the script we have provided in `scripts/build_fm_index.py`! 
+You only need  to put your retrieval corpus in a very simple TSV format as in the following example:
 ```
-identifier  title   content
+doc1    Doc 1   This is a sample document
+doc2    Doc 2   This is another sample documents
+doc3    Doc 3   And here you find the final one
 ```
-To do so, you may use the `scripts/data/convert_*_kb.sh` scripts (requiring `jq`).
+Fields are: 
+* document id
+* document title
+* text 
 
 Then you can build the FM-index with:
-```
-python scripts/data/build_fm_index.py corpus.tsv output --clean --hf_model facebook/bart-large --jobs 40 --include_title
+```commandline
+FILE_I=res/sample/sample_corpus.tsv
+FILE_O=res/sample/sample_corpus.fm_index
+
+python scripts/data/build_fm_index.py \
+    $FILE_I $FILE_O \
+    --clean --hf_model facebook/bart-large  \
+    --jobs 40 --include_title \
 ```
 The parameter `--jobs` only speeds up the tokenization at the moment. `--include_title` only makes sense if your retrieval corpus has non-empty titles.
 
-
+### Building the FM-index (Python)
