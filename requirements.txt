@@ -1,0 +1,9 @@
+tqdm
+nltk
+jsonlines
+spacy
+fuzzywuzzy
+fairseq
+more_itertools
+transformers==4.13.0
+pyserini==0.13.0
