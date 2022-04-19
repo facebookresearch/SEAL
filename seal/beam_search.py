@@ -11,7 +11,7 @@ from transformers import LogitsProcessor, BeamScorer, BeamSearchScorer, LogitsPr
 from transformers.generation_utils import BeamSearchOutput, validate_stopping_criteria, BeamSearchEncoderDecoderOutput, BeamSearchDecoderOnlyOutput
 from transformers.generation_logits_process import TopKLogitsWarper
 
-from generative_retrieval.index import FMIndex
+from seal.index import FMIndex
 
 stopword_token_ids = [
     10,   # a 
@@ -370,24 +370,24 @@ def constrained_beam_search(
 @torch.inference_mode()
 def fm_index_generate(
     model,
-    index,
-    input_ids, 
-    attention_mask,
-    min_length=15,
-    max_length=25,
-    length_penalty=1.0,
-    num_beams=3,
-    diverse_bs_groups=1,
-    diverse_bs_penalty=0.0,
-    eos_token_id=None,
-    force_decoding_from=None,
-    keep_history=True,
-    disable_fm_index=False,
-    sample=False,
-    stop_at_count=0,
-    topk=0,
+    index: FMIndex,
+    input_ids: torch.LongTensor,
+    attention_mask: torch.LongTensor,
+    min_length: int = 3,
+    max_length: int = 25,
+    length_penalty: float = 1.0,
+    num_beams: int = 3,
+    diverse_bs_groups: int = 1,
+    diverse_bs_penalty: float = 0.0,
+    eos_token_id: Optional[int] = None,
+    force_decoding_from: Optional[List[int]] = None,
+    keep_history: bool = True,
+    disable_fm_index: bool = False,
+    sample: bool = False,
+    stop_at_count: int = 0,
+    topk: int = 0,
     ):
-
+    
     if sample:
         orig_num_beams = num_beams
         input_ids = input_ids.repeat(num_beams, 1)

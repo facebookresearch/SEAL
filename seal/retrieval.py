@@ -11,10 +11,10 @@ import tqdm
 
 from transformers import AutoConfig, AutoModelForSeq2SeqLM, AutoTokenizer, BartTokenizer, BartForConditionalGeneration
 
-from generative_retrieval.index import FMIndex
-from generative_retrieval.beam_search import fm_index_generate
-from generative_retrieval import keys as rk
-from generative_retrieval.utils import \
+from seal.index import FMIndex
+from seal.beam_search import fm_index_generate
+from seal import keys as rk
+from seal.utils import \
     load_state_dict_from_lightning_checkpoint, \
     load_state_dict_from_fairseq_checkpoint
 
@@ -305,7 +305,7 @@ def batch_generate_keys(searcher, queries, constrained_generation=True):
                 yield instance 
 
 
-class GenerativeRetrievalDocument:
+class SEALDocument:
 
     def __init__(
             self, idx: int, 
@@ -389,14 +389,7 @@ class GenerativeRetrievalDocument:
     def __repr__(self):
         return f'<GRDocument: {self.idx}, "{self.raw_text()[:30]}[...]">'
 
-
-@dataclass
-class GenerativeRetrievalSearchResult:
-    docid: str
-    score: float
-
-
-class GenerativeRetrievalSearcher:
+class SEALSearcher:
 
     DEFAULTS = \
     {
@@ -404,7 +397,7 @@ class GenerativeRetrievalSearcher:
         "fairseq_checkpoint": True,
         "length": 10,
         "min_length": 0,
-        "length_penalty": 2.0,
+        "length_penalty": 0.0,
         "scoring_length_penalty": 0.0,
         "repetition_penalty": 0.8,
         "score_exponent": 2.0,
@@ -641,12 +634,12 @@ class GenerativeRetrievalSearcher:
         )
         return searcher
 
-    def search(self, query: str, k: int = 10, added_documents=None, detokenize=True) -> List[GenerativeRetrievalDocument]:
+    def search(self, query: str, k: int = 10, added_documents=None, detokenize=True) -> List[SEALDocument]:
         if added_documents is not None:
             added_documents = [added_documents]
         return self.batch_search([query], k=k, added_documents=added_documents, detokenize=True)[0]
 
-    def batch_search(self, queries, k: int = 10, added_documents=None, detokenize=None) -> List[List[GenerativeRetrievalDocument]]:
+    def batch_search(self, queries, k: int = 10, added_documents=None, detokenize=None) -> List[List[SEALDocument]]:
         if detokenize is None:
             detokenize = self.detokenize
         retrieved = []
@@ -666,7 +659,7 @@ class GenerativeRetrievalSearcher:
         for query, res in zip(queries, results):
             docs = []
             for idx, (score, kk, _, full, _) in islice(res.items(), k):
-                doc = GenerativeRetrievalDocument(
+                doc = SEALDocument(
                     idx, 
                     score, 
                     self.fm_index, 
@@ -803,12 +796,12 @@ class GenerativeRetrievalSearcher:
                 print(i)
             yield self.retrieve_from_keys(kk)
 
-    def doc(self, docid: Union[str, int]) -> Optional[GenerativeRetrievalDocument]:
+    def doc(self, docid: Union[str, int]) -> Optional[SEALDocument]:
         if isinstance(docid, str):
             idx = self.docid2idx[docid]
         else:
             idx = docid
-        return GenerativeRetrievalDocument(idx, None, self.fm_index, self.bart_tokenizer, delim1=self.title_eos_token_id, delim2=self.code_eos_token_id)
+        return SEALDocument(idx, None, self.fm_index, self.bart_tokenizer, delim1=self.title_eos_token_id, delim2=self.code_eos_token_id)
 
 
 def _retrieve_from_keys_mp_aux(args):

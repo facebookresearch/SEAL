@@ -17,7 +17,7 @@ else:
 try:
     import builtins as __builtin__
 except ImportError:
-    import __builtin__
+    import builtins
 
 def _swig_repr(self):
     try:

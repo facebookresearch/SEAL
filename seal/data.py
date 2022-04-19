@@ -10,7 +10,7 @@ from enum import unique, Enum
 from pyserini.query_iterator import QueryIterator, DefaultQueryIterator, KiltQueryIterator
 from pyserini.output_writer import OutputWriter, TrecWriter, MsMarcoWriter
 
-from generative_retrieval.retrieval import GenerativeRetrievalDocument
+from seal.retrieval import SEALDocument
 
 @unique
 class TopicsFormat(Enum):
@@ -138,7 +138,7 @@ class KiltWriter(OutputWriter):
         provenance = []
         datapoint = {'id': topic, 'input': None, 'output': [{'provenance': provenance}]}
         for docid, rank, score, hit in self.hits_iterator(hits):
-            if isinstance(hit, GenerativeRetrievalDocument):
+            if isinstance(hit, SEALDocument):
                 if datapoint['input'] is None and hit.query is not None:
                     datapoint['input'] = hit.query
                 docid = docid.split("-")

@@ -8,7 +8,7 @@ import torch
 from more_itertools import chunked
 from tqdm import tqdm
 
-from generative_retrieval import FMIndex
+from seal import FMIndex
 
 def deduplicate(list_of_lists):
     present = set()

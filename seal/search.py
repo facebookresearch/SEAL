@@ -1,21 +1,15 @@
 import random
-import os
 
 from more_itertools import chunked
 
-from generative_retrieval.retrieval import GenerativeRetrievalSearcher
-from generative_retrieval.bm25.retrieval_bm25 import GenerativeRetrievalBM25Searcher
-from generative_retrieval.data import TopicsFormat, OutputFormat, get_query_iterator, get_output_writer
+from seal.retrieval import SEALSearcher
+from seal.data import TopicsFormat, OutputFormat, get_query_iterator, get_output_writer
 
 if __name__ == '__main__':
 
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--bm25_index', type=str, default=None)
-    parser.add_argument('--bm25_expand_query', action='store_true')
-    parser.add_argument('--bm25_weights', type=float, default=0.0)
-    parser.add_argument('--bm25_topk', default=25, type=int)
     parser.add_argument('--hybrid', default='none', choices=['none', 'ensemble', 'recall', 'recall-ensemble'])
     parser.add_argument('--topics', type=str, metavar='topic_name', required=True,
                         help="Name of topics.")
@@ -37,7 +31,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--keep_samples', type=int, default=None)
     parser.add_argument('--chunked', type=int, default=0)
-    GenerativeRetrievalSearcher.add_args(parser)
+    SEALSearcher.add_args(parser)
     args = parser.parse_args()
 
     print(args)
@@ -45,7 +39,7 @@ if __name__ == '__main__':
     query_iterator = get_query_iterator(args.topics, TopicsFormat(args.topics_format))
 
     output_writer = get_output_writer(args.output, OutputFormat(args.output_format), 'w',
-                                    max_hits=args.hits, tag="GR", topics=query_iterator.topics,
+                                    max_hits=args.hits, tag="SEAL", topics=query_iterator.topics,
                                     use_max_passage=args.max_passage,
                                     max_passage_delimiter=args.max_passage_delimiter,
                                     max_passage_hits=args.max_passage_hits)
@@ -60,18 +54,7 @@ if __name__ == '__main__':
         query_iterator.order = query_iterator.order[:args.keep_samples]
         query_iterator.topics = {topic: query_iterator.topics[topic] for topic in query_iterator.order}
 
-    searcher = GenerativeRetrievalSearcher.from_args(args)
-    if args.bm25_index:
-        if os.path.exists(args.bm25_index):
-            searcher = GenerativeRetrievalBM25Searcher(args.bm25_index, searcher)
-        else:
-            searcher = GenerativeRetrievalBM25Searcher.from_prebuilt_index(args.bm25_index, searcher)
-        searcher.topk = args.bm25_topk
-        searcher.expand_query = args.bm25_expand_query
-        searcher.weights = args.bm25_weights
-        searcher.progress = args.progress
-        searcher.generative_searcher.progress = False
-        searcher.hybrid = args.hybrid
+    searcher = SEALSearcher.from_args(args)
 
     with output_writer:
         if args.chunked <= 0:
