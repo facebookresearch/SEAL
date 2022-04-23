@@ -1,0 +1,31 @@
+[
+  {
+    "dataset": "sample_dataset",
+    "question": "is this real life?",
+    "answers": ["yes"],
+    "positive_ctxs": [
+      {
+        "title": "Doc 1",
+        "text": "This is a sample document",
+        "score": 1000,
+        "title_score": 1,
+        "passage_id": "doc1"
+      }
+    ]
+  },
+  {
+    "dataset": "sample_dataset",
+    "question": "or is it just fantasy?",
+    "answers": ["no"],
+    "positive_ctxs": [
+      {
+        "title": "Doc 2",
+        "text": "This is another sample document",
+        "score": 1000,
+        "title_score": 1,
+        "passage_id": "doc2"
+      }
+    ]
+  }
+
+]
