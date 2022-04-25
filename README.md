@@ -5,8 +5,8 @@ This repo hosts the code for our paper, SEAL.
 @inproceedings{bevilacqua2022autoregressive,
   title={Autoregressive Search Engines: Generating Substrings as Document Identifiers}, 
   author={Michele Bevilacqua and Giuseppe Ottaviano and Patrick Lewis and Wen-tau Yih and Sebastian Riedel and Fabio Petroni},
-  booktitle={arXiv pre-print xxx.xxxxx},
-  url={https://arxiv.org/abs/xxxx.xxxxx},
+  booktitle={arXiv pre-print 2204.10628},
+  url={https://arxiv.org/abs/2204.10628},
   year={2022},
 }
 ```
