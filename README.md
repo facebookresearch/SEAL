@@ -13,6 +13,8 @@ This repo hosts the code for our paper, SEAL.
 
 [https://arxiv.org/abs/2204.10628](https://arxiv.org/abs/2204.10628)
 
+![SEAL architecture](./res/architecture.jpg)
+
 We propose a approach to retrieval that uses guided LM decoding to search for occurrences of ngrams of any size in an 
 arbitrary large collection of documents. Constrained decoding blocks the generation of ngrams that never appear in the 
 corpus: generated ngrams are always grounded in one or multiple documents in the retrieval corpus. Documents are then scored by aggregating the scores for individual generated 
