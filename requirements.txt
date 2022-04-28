@@ -4,4 +4,5 @@ jsonlines
 fuzzywuzzy
 more_itertools
 transformers==4.13.0
+spacy
 ftfy

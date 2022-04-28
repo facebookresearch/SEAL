@@ -127,6 +127,7 @@ class IndexBasedLogitsProcessor(LogitsProcessor):
                         distinct = [self.pad_token_id]
 
                     else:
+                        fm_index_counts.pop()
                         distinct, _ = fm_index_result.pop()
 
                     distinct = torch.LongTensor(distinct).to(scores.device)
@@ -482,7 +483,7 @@ def fm_index_generate(
     model_kwargs['use_cache'] = True
 
     decoder_input_ids = model._prepare_decoder_input_ids_for_generation(
-        input_ids, 
+        batch_size=input_ids.size(0),
         decoder_start_token_id=model.config.decoder_start_token_id, 
         bos_token_id=model.config.bos_token_id,
     )

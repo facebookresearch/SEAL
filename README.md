@@ -29,9 +29,14 @@ from simple unigrams to entire sentences.
 Our implementation relies on [`sdsl-lite`](https://github.com/simongog/sdsl-lite).
 
 ## Install
-We assume that `pytorch` is already available in your environment. SEAL has been tested with version 1.11.
+SEAL needs a working installation of [SWIG](https://www.swig.org/), e.g. (on Ubuntu):
+```commandline
+sudo apt install swig
+```
 
-Clone this repo with `--recursive` so that you also include the submodule in `ext`.
+We also assume that `pytorch` is already available in your environment. SEAL has been tested with version 1.11.
+
+Clone this repo with `--recursive` so that you also include the submodule in `res/external`.
 ```commandline
 git clone --recursive git@github.com:facebookresearch/SEAL.git
 ```
@@ -45,7 +50,7 @@ Install other dependencies:
 ```commandline
 pip install -r requirements.txt
 
-# pyserini & spacy
+# pyserini
 # pip install -r requirements_extra.txt
 ```
 
