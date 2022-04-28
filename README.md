@@ -38,7 +38,7 @@ We also assume that `pytorch` is already available in your environment. SEAL has
 
 Clone this repo with `--recursive` so that you also include the submodule in `res/external`.
 ```commandline
-git clone --recursive git@github.com:facebookresearch/SEAL.git
+git clone --recursive https://github.com/facebookresearch/SEAL.git
 ```
 
 Compile and install `sdsl-lite`:
