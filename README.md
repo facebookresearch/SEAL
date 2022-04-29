@@ -176,8 +176,8 @@ following snippet we show a use case beyond retrieval: paraphrase mining.
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from seal import fm_index_generate, FMIndex
 
-tokenizer = AutoTokenizer.from_pretrained('tuner007/pegaus_paraphrase')
-model = AutoModelForSeq2SeqLM.from_pretrained('tuner007/pegaus_paraphrase')
+tokenizer = AutoTokenizer.from_pretrained('tuner007/pegasus_paraphrase')
+model = AutoModelForSeq2SeqLM.from_pretrained('tuner007/pegasus_paraphrase')
 
 # building the corpus from a single long string
 corpus = " ".join("""
