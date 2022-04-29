@@ -29,11 +29,16 @@ from simple unigrams to entire sentences.
 Our implementation relies on [`sdsl-lite`](https://github.com/simongog/sdsl-lite).
 
 ## Install
-We assume that `pytorch` is already available in your environment. SEAL has been tested with version 1.11.
-
-Clone this repo with `--recursive` so that you also include the submodule in `ext`.
+SEAL needs a working installation of [SWIG](https://www.swig.org/), e.g. (on Ubuntu):
 ```commandline
-git clone --recursive git@github.com:facebookresearch/SEAL.git
+sudo apt install swig
+```
+
+We also assume that `pytorch` is already available in your environment. SEAL has been tested with version 1.11.
+
+Clone this repo with `--recursive` so that you also include the submodule in `res/external`.
+```commandline
+git clone --recursive https://github.com/facebookresearch/SEAL.git
 ```
 
 Compile and install `sdsl-lite`:
@@ -45,7 +50,7 @@ Install other dependencies:
 ```commandline
 pip install -r requirements.txt
 
-# pyserini & spacy
+# pyserini
 # pip install -r requirements_extra.txt
 ```
 
@@ -171,8 +176,8 @@ following snippet we show a use case beyond retrieval: paraphrase mining.
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from seal import fm_index_generate, FMIndex
 
-tokenizer = AutoTokenizer.from_pretrained('tuner007/pegaus_paraphrase')
-model = AutoModelForSeq2SeqLM.from_pretrained('tuner007/pegaus_paraphrase')
+tokenizer = AutoTokenizer.from_pretrained('tuner007/pegasus_paraphrase')
+model = AutoModelForSeq2SeqLM.from_pretrained('tuner007/pegasus_paraphrase')
 
 # building the corpus from a single long string
 corpus = " ".join("""
