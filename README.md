@@ -136,7 +136,7 @@ FILE_O=res/sample/sample_corpus.fm_index
 
 python scripts/data/build_fm_index.py \
     $FILE_I $FILE_O \
-    --clean --hf_model facebook/bart-large  \
+    --hf_model facebook/bart-large  \
     --jobs 40 --include_title \
 ```
 The parameter `--jobs` only speeds up the tokenization at the moment. `--include_title` only makes sense if your retrieval corpus has non-empty titles.
