@@ -69,8 +69,8 @@ def batch_generate_keys(searcher, queries, constrained_generation=True):
 
             found_keys = fm_index_generate(
                 searcher.bart_model, searcher.fm_index,
-                **batch, 
-                min_length=searcher.length,
+                **batch,
+                min_length=searcher.min_length,
                 max_length=searcher.length,
                 length_penalty=searcher.length_penalty,
                 num_beams=searcher.beam,
@@ -86,9 +86,13 @@ def batch_generate_keys(searcher, queries, constrained_generation=True):
                 fk[:] = [(s, k[1:] if k[0] in searcher.strip_token_ids else k) for s, k in fk if k]
                 fk[:] = [(s, k[1:] if k[0] in searcher.strip_token_ids else k) for s, k in fk if k]
                 fk[:] = [(s, k[:-1] if k[-1] in searcher.strip_token_ids else k) for s, k in fk if k]
+
+                if searcher.skip_n_tokens:
+                    fk[:] = [(s, k[searcher.skip_n_tokens:]) for s, k in fk if k]
+
                 if searcher.min_length > 0:
-                    fk[:] = [(s, k) for s, k in fk if len(k) == searcher.min_length]
-                fk[:] = [(s, k)  for s, k in fk if k and searcher.fm_index.get_count(k) > 0]
+                    fk[:] = [(s, k) for s, k in fk if len(k) >= searcher.min_length]
+                fk[:] = [(s, k) for s, k in fk if k and searcher.fm_index.get_count(k) > 0]
 
             if searcher.rescore and searcher.use_markers:
 
@@ -126,7 +130,7 @@ def batch_generate_keys(searcher, queries, constrained_generation=True):
                 new_fk = [k[1:] if k and k[0] in searcher.strip_token_ids else k for k in new_fk if k]
                 new_fk = [k[1:] if k and k[0] in searcher.strip_token_ids else k for k in new_fk if k]
                 if searcher.min_length > 0:
-                    new_fk = [k for k in new_fk if len(k) == searcher.min_length]
+                    new_fk = [k for k in new_fk if len(k) >= searcher.min_length]
                 new_fk = [k  for k in new_fk if k and searcher.fm_index.get_count(k) > 0]
                 found_keys_input_no_score.append(new_fk)
 
@@ -186,7 +190,7 @@ def batch_generate_keys(searcher, queries, constrained_generation=True):
                 if not searcher.partial_titles:
                     new_fk[:] = [(s, k) for s, k in new_fk if k[-1] == searcher.title_eos_token_id]
                     if searcher.min_length > 0:
-                        new_fk[:] = [(s, k) for s, k in new_fk if len(k) == (searcher.min_length+1)]
+                        new_fk[:] = [(s, k) for s, k in new_fk if len(k) >= (searcher.min_length+1)]
                 new_fk[:] = [(s, [searcher.title_bos_token_id] + k if k[0] != searcher.title_bos_token_id else k) for s, k in new_fk]
                 new_fk[:] = [(s, k)  for s, k in new_fk if k and searcher.fm_index.get_count(k) > 0]
             
@@ -403,6 +407,7 @@ class SEALSearcher:
         "backbone": 'facebook/bart-large',
         "fairseq_checkpoint": True,
         "length": 10,
+        "skip_n_tokens": 0,
         "min_length": 0,
         "length_penalty": 0.0,
         "scoring_length_penalty": 0.0,
@@ -720,7 +725,6 @@ class SEALSearcher:
     def retrieve_from_keys(self, keys):
         
         unigram_scores = None
-        added_documents = None
         if isinstance(keys, tuple) and len(keys) == 1:
             keys = keys[0]
         elif isinstance(keys, tuple) and len(keys) == 2:
@@ -821,3 +825,4 @@ def _detokenize_mp_aux(args):
     if not seq:
         return ""
     return getattr(sys.modules['__main__'], f'_searcher_global_{idx}').bart_tokenizer.decode(seq, skip_special_tokens=True, clean_up_tokenization_spaces=False).strip()
+
